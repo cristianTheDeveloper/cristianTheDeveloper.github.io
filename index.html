@@ -68,7 +68,7 @@
 <body>
   <div id="map"></div>
   <div id="indizio">
-    <p><strong>Indizio:</strong> "Sono di pietra, sono antico, ho un leone all'ingresso che veglia e custodisce il mio cuore di fede. Dove sono?"</p>
+    <p id="testo-indizio"><strong>Indizio:</strong> "Sono di pietra, sono antico, ho un leone all'ingresso che veglia e custodisce il mio cuore di fede. Dove sono?"</p>
     <div id="lettere"></div>
     <div id="tentativo">
       <input type="text" id="risposta" placeholder="Scrivi qui la risposta..." />
@@ -93,52 +93,86 @@
       {
         name: 'Duomo di Modena',
         coords: [44.6455, 10.9253],
-        text: 'Ammira la meraviglia romanica del Duomo di Modena.'
+        text: 'Ammira la meraviglia romanica del Duomo di Modena.',
+        soluzione: 'duomo',
+        lettere: 'D U O M O X T R L I N',
+        indizio: 'Sono di pietra, sono antico, ho un leone all\'ingresso che veglia e custodisce il mio cuore di fede. Dove sono?'
+      },
+      {
+        name: 'Torre Ghirlandina',
+        coords: [44.6458, 10.9259],
+        text: 'La vista da lassù ti toglierà il fiato, proprio come fai tu con me 💛.',
+        soluzione: 'ghirlandina',
+        lettere: 'G H I R L A N D I N A E O M',
+        indizio: 'Sono alta, fiera e vicina a chi canta. Da secoli ti guardo dall’alto, dove svettano le campane. Chi sono?'
       }
     ];
 
-    const soluzione = "duomo";
-    const lettereDisponibili = "D U O M O X T R L I N".split(" ");
+    let tappaIndex = 0;
+
+    const testoIndizio = document.getElementById("testo-indizio");
     const lettereDiv = document.getElementById("lettere");
     const inputRisposta = document.getElementById("risposta");
     const bottoneVerifica = document.getElementById("verifica");
     const messaggio = document.getElementById("messaggio-successo");
     const bottoneSblocca = document.getElementById("sblocca");
-    let tappaIndex = 0;
 
-    lettereDisponibili.forEach(lettera => {
-      const btn = document.createElement("button");
-      btn.className = "lettera";
-      btn.innerText = lettera;
-      btn.onclick = () => inputRisposta.value += lettera.toLowerCase();
-      lettereDiv.appendChild(btn);
-    });
+    function mostraLettere(lettereString) {
+      lettereDiv.innerHTML = '';
+      lettereString.split(" ").forEach(lettera => {
+        const btn = document.createElement("button");
+        btn.className = "lettera";
+        btn.innerText = lettera;
+        btn.onclick = () => inputRisposta.value += lettera.toLowerCase();
+        lettereDiv.appendChild(btn);
+      });
+    }
+
+    function mostraIndizio(index) {
+      testoIndizio.innerHTML = `<strong>Indizio:</strong> "${tappe[index].indizio}"`;
+      mostraLettere(tappe[index].lettere);
+      inputRisposta.value = '';
+      bottoneVerifica.disabled = false;
+      bottoneSblocca.style.display = "none";
+      messaggio.innerText = '';
+      setTimeout(() => {
+        bottoneSblocca.style.display = "inline-block";
+      }, 60000);
+    }
+
+    function mostraTappa(index) {
+      const t = tappe[index];
+      L.marker(t.coords).addTo(map).bindPopup(`<strong>${t.name}</strong><br>${t.text}`).openPopup();
+      map.setView(t.coords, 16);
+    }
 
     bottoneVerifica.addEventListener("click", () => {
       const val = inputRisposta.value.toLowerCase().trim();
-      if (val === soluzione) {
-        mostraTappa();
+      if (val === tappe[tappaIndex].soluzione) {
+        mostraTappa(tappaIndex);
         messaggio.innerText = "🎉 Complimenti amore mio, proseguiamo!";
         bottoneVerifica.disabled = true;
+        tappaIndex++;
+        if (tappaIndex < tappe.length) {
+          setTimeout(() => {
+            mostraIndizio(tappaIndex);
+          }, 3000);
+        }
       } else {
         messaggio.innerText = "Mh... non è corretto, riprova!";
       }
     });
 
-    function mostraTappa() {
-      const tappa = tappe[tappaIndex];
-      L.marker(tappa.coords).addTo(map).bindPopup(`<strong>${tappa.name}</strong><br>${tappa.text}`).openPopup();
-      map.setView(tappa.coords, 16);
-    }
-
-    // Mostra il bottone "sblocca" dopo 1 minuto
-    setTimeout(() => {
-      bottoneSblocca.style.display = "inline-block";
-    }, 60000);
-
     bottoneSblocca.addEventListener("click", () => {
-      mostraTappa();
-      messaggio.innerText = "Va bene! La prossima tappa è sbloccata: Duomo di Modena ❤️";
+      mostraTappa(tappaIndex);
+      messaggio.innerText = `Va bene! La prossima tappa è sbloccata: ${tappe[tappaIndex].name} ❤️`;
+      bottoneVerifica.disabled = true;
+      tappaIndex++;
+      if (tappaIndex < tappe.length) {
+        setTimeout(() => {
+          mostraIndizio(tappaIndex);
+        }, 3000);
+      }
     });
 
     // Geolocalizzazione
@@ -147,7 +181,6 @@
       L.marker(e.latlng).addTo(map).bindPopup("Sei qui! 😊").openPopup();
       L.circle(e.latlng, radius).addTo(map);
     }
-
     function onLocationError(e) {
       console.warn("Geolocalizzazione fallita: " + e.message);
     }
@@ -155,6 +188,9 @@
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
     map.locate({ setView: true, maxZoom: 13 });
+
+    // Avvio primo indizio
+    mostraIndizio(tappaIndex);
   </script>
 </body>
 </html>
