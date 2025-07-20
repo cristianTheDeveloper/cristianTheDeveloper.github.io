@@ -1,1 +1,98 @@
-Hello World
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La tua sorpresa</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2pkCuGjQDMvNQ0hxEec7uWkS1pVxTzMI3CMreRM="
+    crossorigin=""
+  />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: sans-serif;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+    .leaflet-popup-content {
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-pH9bYzcEnzVMUbh4kCKg1GbbGksZlIJ7QF++jzvLvgE="
+    crossorigin=""
+  ></script>
+  <script>
+    const map = L.map('map').setView([44.646, 10.926], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const tappe = [
+      {
+        name: 'Piazza Grande',
+        coords: [44.6453, 10.9255],
+        text: 'Benvenuti a Piazza Grande! Inizia qui il vostro viaggio romantico. ❤️'
+      },
+      {
+        name: 'Duomo di Modena',
+        coords: [44.6455, 10.9253],
+        text: 'Ammira la meraviglia romanica del Duomo di Modena.'
+      },
+      {
+        name: 'Torre Ghirlandina',
+        coords: [44.6457, 10.9256],
+        text: 'Salite fino in cima per vedere tutta Modena ai vostri piedi!'
+      },
+      {
+        name: 'Mercato Albinelli',
+        coords: [44.6451, 10.9277],
+        text: 'Scoprite sapori e profumi al Mercato Albinelli.'
+      },
+      {
+        name: 'Giardini Ducali',
+        coords: [44.6500, 10.9250],
+        text: 'Riposatevi nel verde dei Giardini Ducali sotto l’ombra degli alberi.'
+      },
+      {
+        name: 'Ristorante Miki 2',
+        coords: [44.6433, 10.9544],
+        text: 'Termina la giornata con una cena di pesce da sogno. Buon appetito! 🍽️'
+      }
+    ];
+
+    tappe.forEach(tappa => {
+      L.marker(tappa.coords).addTo(map).bindPopup(`<strong>${tappa.name}</strong><br>${tappa.text}`);
+    });
+
+    // Geolocalizzazione
+    function onLocationFound(e) {
+      const radius = e.accuracy;
+      L.marker(e.latlng).addTo(map).bindPopup("Sei qui! 😊").openPopup();
+      L.circle(e.latlng, radius).addTo(map);
+    }
+
+    function onLocationError(e) {
+      alert("Geolocalizzazione fallita: " + e.message);
+    }
+
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+
+    map.locate({ setView: true, maxZoom: 16 });
+  </script>
+</body>
+</html>
