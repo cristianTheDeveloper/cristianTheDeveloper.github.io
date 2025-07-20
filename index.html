@@ -13,63 +13,68 @@
       font-family: sans-serif;
     }
     #map {
-      height: 100vh;
+      height: 80vh;
       width: 100%;
     }
-    .leaflet-popup-content {
+    #indizio {
+      padding: 1rem;
+      background-color: #fff7e6;
+      border-top: 2px solid #f0c36d;
+      font-size: 1.1rem;
+    }
+    #sblocca {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
       font-size: 1rem;
+      background-color: #f0c36d;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <div id="indizio">
+    <p><strong>Indizio:</strong> "Sono di pietra, sono antico, ho un leone all'ingresso che veglia e custodisce il mio cuore di fede. Dove sono?"</p>
+    <button id="sblocca">Sblocca la prossima tappa</button>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([44.646, 10.926], 15);
+    const map = L.map('map').setView([44.698, 10.631], 12); // partenza da casa sua a Reggio Emilia
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // Marker iniziale: casa sua
+    const casa = L.marker([44.698, 10.631]).addTo(map)
+      .bindPopup("Partenza: Casa tua! 🏡").openPopup();
+
     const tappe = [
-      {
-        name: 'Piazza Grande',
-        coords: [44.6453, 10.9255],
-        text: 'Benvenuti a Piazza Grande! Inizia qui il vostro viaggio romantico. ❤️'
-      },
       {
         name: 'Duomo di Modena',
         coords: [44.6455, 10.9253],
         text: 'Ammira la meraviglia romanica del Duomo di Modena.'
       },
-      {
-        name: 'Torre Ghirlandina',
-        coords: [44.6457, 10.9256],
-        text: 'Salite fino in cima per vedere tutta Modena ai vostri piedi!'
-      },
-      {
-        name: 'Mercato Albinelli',
-        coords: [44.6451, 10.9277],
-        text: 'Scoprite sapori e profumi al Mercato Albinelli.'
-      },
-      {
-        name: 'Giardini Ducali',
-        coords: [44.6500, 10.9250],
-        text: 'Riposatevi nel verde dei Giardini Ducali sotto l’ombra degli alberi.'
-      },
-      {
-        name: 'Ristorante Miki 2',
-        coords: [44.6433, 10.9544],
-        text: 'Termina la giornata con una cena di pesce da sogno. Buon appetito! 🍽️'
-      }
+      // altre tappe verranno aggiunte in seguito
     ];
 
-    tappe.forEach(tappa => {
-      L.marker(tappa.coords).addTo(map).bindPopup(`<strong>${tappa.name}</strong><br>${tappa.text}`);
+    let tappaIndex = 0;
+    const bottone = document.getElementById('sblocca');
+
+    bottone.addEventListener('click', () => {
+      if (tappaIndex < tappe.length) {
+        const tappa = tappe[tappaIndex];
+        L.marker(tappa.coords).addTo(map).bindPopup(`<strong>${tappa.name}</strong><br>${tappa.text}`).openPopup();
+        map.setView(tappa.coords, 16);
+        tappaIndex++;
+        bottone.disabled = true;
+        bottone.innerText = "Tappa sbloccata!";
+      }
     });
 
-    // Geolocalizzazione
     function onLocationFound(e) {
       const radius = e.accuracy;
       L.marker(e.latlng).addTo(map).bindPopup("Sei qui! 😊").openPopup();
@@ -83,7 +88,7 @@
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
 
-    map.locate({ setView: true, maxZoom: 16 });
+    map.locate({ setView: true, maxZoom: 13 });
   </script>
 </body>
 </html>
