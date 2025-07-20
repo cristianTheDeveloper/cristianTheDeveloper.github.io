@@ -13,7 +13,7 @@
       font-family: sans-serif;
     }
     #map {
-      height: 80vh;
+      height: 70vh;
       width: 100%;
     }
     #indizio {
@@ -22,14 +22,46 @@
       border-top: 2px solid #f0c36d;
       font-size: 1.1rem;
     }
+    #lettere, #tentativo {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .lettera {
+      padding: 0.4rem 0.7rem;
+      font-size: 1rem;
+      background-color: #f0c36d;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #tentativo input {
+      padding: 0.4rem;
+      font-size: 1rem;
+      width: 60%;
+    }
+    #tentativo button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      background-color: #f0c36d;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
     #sblocca {
       margin-top: 1rem;
       padding: 0.5rem 1rem;
       font-size: 1rem;
-      background-color: #f0c36d;
+      background-color: #ccc;
       border: none;
       border-radius: 5px;
-      cursor: pointer;
+      display: none;
+    }
+    #messaggio-successo {
+      color: green;
+      font-weight: bold;
+      margin-top: 1rem;
     }
   </style>
 </head>
@@ -37,18 +69,23 @@
   <div id="map"></div>
   <div id="indizio">
     <p><strong>Indizio:</strong> "Sono di pietra, sono antico, ho un leone all'ingresso che veglia e custodisce il mio cuore di fede. Dove sono?"</p>
-    <button id="sblocca">Sblocca la prossima tappa</button>
+    <div id="lettere"></div>
+    <div id="tentativo">
+      <input type="text" id="risposta" placeholder="Scrivi qui la risposta..." />
+      <button id="verifica">Verifica</button>
+    </div>
+    <p id="messaggio-successo"></p>
+    <button id="sblocca">Non ci riesco... mostrami la meta ❤️</button>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([44.698, 10.631], 12); // partenza da casa sua a Reggio Emilia
+    const map = L.map('map').setView([44.698, 10.631], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Marker iniziale: casa sua
     const casa = L.marker([44.698, 10.631]).addTo(map)
       .bindPopup("Partenza: Casa tua! 🏡").openPopup();
 
@@ -57,24 +94,54 @@
         name: 'Duomo di Modena',
         coords: [44.6455, 10.9253],
         text: 'Ammira la meraviglia romanica del Duomo di Modena.'
-      },
-      // altre tappe verranno aggiunte in seguito
+      }
     ];
 
+    const soluzione = "duomo";
+    const lettereDisponibili = "D U O M O X T R L I N".split(" ");
+    const lettereDiv = document.getElementById("lettere");
+    const inputRisposta = document.getElementById("risposta");
+    const bottoneVerifica = document.getElementById("verifica");
+    const messaggio = document.getElementById("messaggio-successo");
+    const bottoneSblocca = document.getElementById("sblocca");
     let tappaIndex = 0;
-    const bottone = document.getElementById('sblocca');
 
-    bottone.addEventListener('click', () => {
-      if (tappaIndex < tappe.length) {
-        const tappa = tappe[tappaIndex];
-        L.marker(tappa.coords).addTo(map).bindPopup(`<strong>${tappa.name}</strong><br>${tappa.text}`).openPopup();
-        map.setView(tappa.coords, 16);
-        tappaIndex++;
-        bottone.disabled = true;
-        bottone.innerText = "Tappa sbloccata!";
+    lettereDisponibili.forEach(lettera => {
+      const btn = document.createElement("button");
+      btn.className = "lettera";
+      btn.innerText = lettera;
+      btn.onclick = () => inputRisposta.value += lettera.toLowerCase();
+      lettereDiv.appendChild(btn);
+    });
+
+    bottoneVerifica.addEventListener("click", () => {
+      const val = inputRisposta.value.toLowerCase().trim();
+      if (val === soluzione) {
+        mostraTappa();
+        messaggio.innerText = "🎉 Complimenti amore mio, proseguiamo!";
+        bottoneVerifica.disabled = true;
+      } else {
+        messaggio.innerText = "Mh... non è corretto, riprova!";
       }
     });
 
+    function mostraTappa() {
+      const tappa = tappe[tappaIndex];
+      L.marker(tappa.coords).addTo(map).bindPopup(`<strong>${tappa.name}</strong><br>${tappa.text}`).openPopup();
+      map.setView(tappa.coords, 16);
+    }
+
+    // Mostra il bottone "sblocca" dopo 1 minuto
+    setTimeout(() => {
+      bottoneSblocca.style.display = "inline-block";
+    }, 60000);
+
+    bottoneSblocca.addEventListener("click", () => {
+      mostraTappa();
+      messaggio.innerText = "Va bene! La prossima tappa è sbloccata: Duomo di Modena ❤️";
+    });
+
+    // Geolocalizzazione
     function onLocationFound(e) {
       const radius = e.accuracy;
       L.marker(e.latlng).addTo(map).bindPopup("Sei qui! 😊").openPopup();
@@ -82,12 +149,11 @@
     }
 
     function onLocationError(e) {
-      alert("Geolocalizzazione fallita: " + e.message);
+      console.warn("Geolocalizzazione fallita: " + e.message);
     }
 
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
-
     map.locate({ setView: true, maxZoom: 13 });
   </script>
 </body>
