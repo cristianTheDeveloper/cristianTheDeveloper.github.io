@@ -36,6 +36,9 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    .lettera.hidden {
+      visibility: hidden;
+    }
     #tentativo input {
       padding: 0.4rem;
       font-size: 1rem;
@@ -95,15 +98,15 @@
         coords: [44.6455, 10.9253],
         text: 'Ammira la meraviglia romanica del Duomo di Modena.',
         soluzione: 'duomo',
-        lettere: 'D A E M O X T U L I O',
-        indizio: 'Sono di pietra, sono antico, ho un leone all\'ingresso. Dove sono?'
+        lettere: 'D A O C O M T R U I N',
+        indizio: 'Sono di pietra, sono antico, ho un leone all\'ingresso che veglia e custodisce il mio cuore di fede. Dove sono?'
       },
       {
         name: 'Torre Ghirlandina',
         coords: [44.6458, 10.9259],
         text: "Esatto, si tratta della torre. Forza amore, saliamo per vedere il panorama della città 💕.",
         soluzione: 'torre',
-        lettere: 'R E T O L A G N D I H',
+        lettere: 'R E T O L A G N D R H',
         indizio: 'Sono alta, fiera e vicina a chi canta. Da secoli ti guardo dall’alto, dove svettano le campane. Chi sono?'
       }
     ];
@@ -119,14 +122,35 @@
 
     function mostraLettere(lettereString) {
       lettereDiv.innerHTML = '';
-      lettereString.split(" ").forEach(lettera => {
+      lettereString.split(" ").forEach((lettera, index) => {
         const btn = document.createElement("button");
         btn.className = "lettera";
         btn.innerText = lettera;
-        btn.onclick = () => inputRisposta.value += lettera.toLowerCase();
+        btn.dataset.index = index;
+        btn.onclick = () => {
+          inputRisposta.value += lettera.toLowerCase();
+          btn.classList.add('hidden');
+          aggiornaLettereDisponibili();
+        };
         lettereDiv.appendChild(btn);
       });
     }
+
+    function aggiornaLettereDisponibili() {
+      const usate = inputRisposta.value.toUpperCase().split("");
+      document.querySelectorAll(".lettera").forEach(btn => {
+        if (btn.classList.contains("hidden")) return;
+        const index = usate.indexOf(btn.innerText);
+        if (index !== -1) {
+          btn.classList.add("hidden");
+          usate.splice(index, 1);
+        } else {
+          btn.classList.remove("hidden");
+        }
+      });
+    }
+
+    inputRisposta.addEventListener("input", aggiornaLettereDisponibili);
 
     function mostraIndizio(index) {
       testoIndizio.innerHTML = `<strong>Indizio:</strong> "${tappe[index].indizio}"`;
